@@ -199,7 +199,7 @@ def create_vdata(verts,color_tuple):
         
     #set the data for each vertex.
     for p in verts:
-        vertex.addData3(p[0],p[1],[2])
+        vertex.addData3(p[0],p[1],p[2])
         color.addData4f(*color_t[:],0.5)
         normal.addData3(0,0,1)
         #do i need normals?
