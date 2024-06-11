@@ -1,4 +1,4 @@
-from panda3d.core import GeomVertexFormat, GeomVertexData
+from panda3d.core import GeomVertexFormat, GeomVertexData, GeomVertexArrayFormat
 from panda3d.core import Geom, GeomTriangles,GeomTrifans, GeomVertexWriter
 from panda3d.core import Texture, GeomNode
 from panda3d.core import NodePath
@@ -55,10 +55,9 @@ def make_object(base,verts=[(0,0,0),(1,0,0),(1,1,0),(0,1,0)],
     snode.addGeom(poly)
     
     if type(base).__name__=="ShowBase":
-        #print("yo what the fuck")
         ob = base.render.attachNewNode(snode)
     else:
-        ob=NodePath(snode)
+        ob = NodePath(snode)
         ob.reparentTo(base)
         
     #ob = base.render.attachNewNode(snode)
@@ -109,12 +108,29 @@ def make_textured_poly(verts,faces):
     
     tformat=GeomVertexFormat.getV3t2()
     
+    
+    array = GeomVertexArrayFormat()
+    array.addColumn("vertex", 3, Geom.NTFloat32, Geom.CPoint)
+    array.addColumn("texcoord", 2, Geom.NTFloat32, Geom.CTexcoord)
+    array.addColumn("texcoord.2", 2, Geom.NTFloat32, Geom.CTexcoord)
     #this is the format we'll be using.
-    vdata = GeomVertexData('convexPoly', tformat, Geom.UHStatic)
-
+    
+    
+    charliebrown = GeomVertexFormat()
+    charliebrown.addArray(array)
+    # this modifies stuff and returns a new object, but it's kind of the same? 
+    
+    charliebrown = GeomVertexFormat.registerFormat(charliebrown)
+    
+    
+   # vdata = GeomVertexData('convexPoly', tformat, Geom.UHStatic)
+    vdata = GeomVertexData('convexPoly', charliebrown, Geom.UHStatic)
+    
+    
     #these are access shortcuts
     vertex = GeomVertexWriter(vdata, 'vertex')
-    uv = GeomVertexWriter(vdata, "texcoord")
+    uv1 = GeomVertexWriter(vdata, "texcoord")
+    uv2 = GeomVertexWriter(vdata, "texcoord.2")
     #normal = GeomVertexWriter(vdata, 'normal')
     #color = GeomVertexWriter(vdata, 'color')
     
@@ -131,9 +147,10 @@ def make_textured_poly(verts,faces):
         print(p,ci)
         uvpair=uvs[ci]
         #stretch stuff to matche thing thing?
-        uv.addData2(*uvpair)
+        #uv.addData2(*uvpair)
         #for generated coordinates
-        #uv.addData2(p[0],p[1])
+        uv1.addData2(p[0],p[1])
+        uv2.addData2(p[0]*0.5,p[1]*0.5)
         ci+=1
         #color.addData4f(*color_t[:],0.5)
         #normal.addData3(0,0,1)
@@ -176,8 +193,8 @@ def make_textured_poly(verts,faces):
     
 def create_vdata(verts,color_tuple):
     #this is the format we'll be using.
-    format = GeomVertexFormat.getV3n3c4()
-    vdata = GeomVertexData('convexPoly', format, Geom.UHStatic)
+    myformat = GeomVertexFormat.getV3n3c4()
+    vdata = GeomVertexData('convexPoly', myformat, Geom.UHStatic)
 
     vdata.setNumRows(len(verts))
     
@@ -199,7 +216,8 @@ def create_vdata(verts,color_tuple):
         
     #set the data for each vertex.
     for p in verts:
-        vertex.addData3(p[0],p[1],[2])
+        print(p)
+        vertex.addData3(p[0],p[1],p[2])
         color.addData4f(*color_t[:],0.5)
         normal.addData3(0,0,1)
         #do i need normals?
@@ -260,8 +278,8 @@ def makecoloredPoly(verts,faces,color_tuple=None):
         tris.addVertices(face[-1],face[0])
         tris.closePrimitive()
         poly.addPrimitive(tris)
-        flb+=len(face)
-        c+=1
+        flb += len(face)
+        c += 1
     
     return poly
 
